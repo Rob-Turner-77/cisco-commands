@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cisco Commands</title>
+<meta name="description" content="Cisco switch command cheat sheet for PuTTY sessions.">
+<meta name="theme-color" content="#333333">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Cisco">
+<style>
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { font-family: -apple-system, system-ui, Segoe UI, Roboto, sans-serif; margin: 0; background: #f4f5f7; color: #222; }
+  :root { accent-color: #333333; }
+  :focus-visible { outline: 2px solid #333333; outline-offset: 2px; }
+  header { background: #333333; color: #fff; padding: 16px 20px; padding-top: calc(16px + env(safe-area-inset-top)); display: flex; align-items: center; gap: 14px; }
+  header .logo { height: 44px; width: auto; display: block; flex: none; }
+  header h1 { margin: 0; font-size: 1.3rem; }
+  header p { margin: 2px 0 0; font-size: .8rem; opacity: .8; }
+  .sticky { position: sticky; top: 0; z-index: 5; background: #f4f5f7; padding: 12px 16px 8px; }
+  main { max-width: 760px; margin: 0 auto; padding: 0 16px 16px; padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
+  .sticky > div { max-width: 760px; margin: 0 auto; }
+  input[type=search] { width: 100%; min-width: 0; padding: 12px; min-height: 48px; border: 1px solid #ccd; border-radius: 8px; font-size: 16px; background: #fff; color: #222; -webkit-appearance: none; appearance: none; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 0 4px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip { flex: none; min-height: 40px; padding: 8px 13px; border-radius: 20px; border: 1px solid #ccd; background: #fff; color: #333; font-size: .95rem; font-weight: 600; cursor: pointer; }
+  .chip[aria-pressed=true] { background: #333333; color: #fff; border-color: #333333; }
+  #count { font-size: .8rem; color: #666; margin: 6px 2px 0; }
+  .card { background: #fff; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,.08); margin-bottom: 16px; overflow: hidden; }
+  .card h2 { font-size: 1rem; margin: 0; padding: 14px 16px 6px; }
+  ul.cmds { list-style: none; margin: 0; padding: 0; }
+  .cmd { display: block; width: 100%; text-align: left; border: 0; border-top: 1px solid #eee; background: none; padding: 12px 16px; cursor: pointer; color: inherit; font: inherit; -webkit-tap-highlight-color: rgba(0,0,0,.06); }
+  .cmd:active { background: #eef0f3; }
+  .cmd code { display: block; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .98rem; font-weight: 600; color: #111; word-break: break-word; }
+  .cmd span { display: block; font-size: .85rem; color: #666; margin-top: 3px; }
+  .cmd .tag { display: inline-block; font-size: .7rem; color: #555; background: #eef0f3; border-radius: 4px; padding: 1px 6px; margin-left: 6px; vertical-align: middle; }
+  .empty { padding: 20px 16px; color: #666; }
+  dl { margin: 0; padding: 4px 16px 12px; display: grid; grid-template-columns: minmax(0, 42%) minmax(0, 1fr); gap: 8px 12px; font-size: .92rem; }
+  dt { color: #666; } dd { margin: 0; font-weight: 600; word-break: break-word; }
+  .note { background: #fff7e0; border-left: 4px solid #e0a800; border-radius: 8px; padding: 12px 14px; font-size: .9rem; margin-bottom: 16px; }
+  .note code { font-family: ui-monospace, Menlo, monospace; font-weight: 600; }
+  #toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(20px); background: #333333; color: #fff; padding: 10px 18px; border-radius: 22px; font-weight: 600; font-size: .95rem; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; max-width: calc(100vw - 32px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; z-index: 10; }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<header>
+  <img class="logo" src="icons/clair-logo-white.png" alt="Clair">
+  <div><h1>Cisco Commands</h1><p>Cisco IOS for PuTTY. Tap a command to copy it.</p></div>
+</header>
+<div class="sticky"><div>
+  <input id="q" type="search" placeholder="Search, e.g. vlan or sfp" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Search commands">
+  <div class="chips" id="chips" role="toolbar" aria-label="Category"></div>
+  <div id="count" aria-live="polite"></div>
+</div></div>
+<main>
+  <section class="card" aria-label="Commands"><ul class="cmds" id="list"></ul></section>
+  <div class="note">Changes are lost on reboot unless you save them with <code>copy running-config startup-config</code> (or <code>wr</code>).</div>
+  <section class="card" id="putty">
+    <h2>PuTTY console settings</h2>
+    <dl>
+      <dt>Connection type</dt><dd>Serial</dd>
+      <dt>Port</dt><dd>Your COM port (see Device Manager)</dd>
+      <dt>Speed</dt><dd>9600 baud</dd>
+      <dt>Data bits / parity / stop</dt><dd>8 / None / 1</dd>
+      <dt>Flow control</dt><dd>None</dd>
+      <dt>Over the network</dt><dd>SSH, port 22</dd>
+    </dl>
+  </section>
+</main>
+<div id="toast" role="status" aria-live="polite"></div>
+<script>
+window.CMDS = [
+ {
+  "cat": "Basics",
+  "cmd": "enable",
+  "desc": "Privileged mode (prompt changes from > to #)"
+ },
+ {
+  "cat": "Basics",
+  "cmd": "configure terminal",
+  "desc": "Enter config mode (short: conf t)"
+ },
+ {
+  "cat": "Basics",
+  "cmd": "exit",
+  "desc": "Back one level"
+ },
+ {
+  "cat": "Basics",
+  "cmd": "end",
+  "desc": "Straight back to privileged # prompt"
+ },
+ {
+  "cat": "Basics",
+  "cmd": "?",
+  "desc": "List available commands; Tab completes"
+ },
+ {
+  "cat": "Basics",
+  "cmd": "terminal length 0",
+  "desc": "Stop output pausing at --More--"
+ },
+ {
+  "cat": "Show",
+  "cmd": "show running-config",
+  "desc": "The live config"
+ },
+ {
+  "cat": "Show",
+  "cmd": "show startup-config",
+  "desc": "The saved config"
+ },
+ {
+  "cat": "Show",
+  "cmd": "show version",
+  "desc": "Model, IOS version, uptime"
+ },
+ {
+  "cat": "Show",
+  "cmd": "show ip interface brief",
+  "desc": "Every port's IP and up/down state"
+ },
+ {
+  "cat": "Show",
+  "cmd": "show interfaces status",
+  "desc": "Speed, duplex and VLAN per port"
+ },
+ {
+  "cat": "Show",
+  "cmd": "show interfaces gi1/0/1",
+  "desc": "Detail and errors for one port"
+ },
+ {
+  "cat": "Show",
+  "cmd": "show vlan brief",
+  "desc": "VLANs and their ports"
+ },
+ {
+  "cat": "Show",
+  "cmd": "show mac address-table",
+  "desc": "Which MAC is on which port"
+ },
+ {
+  "cat": "Show",
+  "cmd": "show cdp neighbors",
+  "desc": "Connected Cisco devices"
+ },
+ {
+  "cat": "Show",
+  "cmd": "show lldp neighbors",
+  "desc": "Connected devices (any vendor)"
+ },
+ {
+  "cat": "Show",
+  "cmd": "show interfaces transceiver",
+  "desc": "SFP light levels in dBm"
+ },
+ {
+  "cat": "Show",
+  "cmd": "show logging",
+  "desc": "Recent log messages"
+ },
+ {
+  "cat": "Show",
+  "cmd": "show spanning-tree",
+  "desc": "Spanning tree state"
+ },
+ {
+  "cat": "Ports",
+  "cmd": "interface gi1/0/1",
+  "desc": "Select one port"
+ },
+ {
+  "cat": "Ports",
+  "cmd": "interface range gi1/0/1-24",
+  "desc": "Select several ports"
+ },
+ {
+  "cat": "Ports",
+  "cmd": "description Stage Left AP",
+  "desc": "Label the port"
+ },
+ {
+  "cat": "Ports",
+  "cmd": "switchport mode access",
+  "desc": "Make it an access port"
+ },
+ {
+  "cat": "Ports",
+  "cmd": "switchport access vlan 10",
+  "desc": "Put the access port on VLAN 10"
+ },
+ {
+  "cat": "Ports",
+  "cmd": "switchport mode trunk",
+  "desc": "Make it a trunk port"
+ },
+ {
+  "cat": "Ports",
+  "cmd": "switchport trunk allowed vlan 10,20",
+  "desc": "VLANs the trunk carries"
+ },
+ {
+  "cat": "Ports",
+  "cmd": "shutdown",
+  "desc": "Turn the port off"
+ },
+ {
+  "cat": "Ports",
+  "cmd": "no shutdown",
+  "desc": "Turn the port on"
+ },
+ {
+  "cat": "Ports",
+  "cmd": "spanning-tree portfast",
+  "desc": "Fast start for end-device ports"
+ },
+ {
+  "cat": "VLAN & mgmt",
+  "cmd": "vlan 10",
+  "desc": "Create VLAN 10"
+ },
+ {
+  "cat": "VLAN & mgmt",
+  "cmd": "name PRODUCTION",
+  "desc": "Name the VLAN (inside vlan 10)"
+ },
+ {
+  "cat": "VLAN & mgmt",
+  "cmd": "interface vlan 1",
+  "desc": "Management interface"
+ },
+ {
+  "cat": "VLAN & mgmt",
+  "cmd": "ip address 192.168.1.2 255.255.255.0",
+  "desc": "Set management IP"
+ },
+ {
+  "cat": "VLAN & mgmt",
+  "cmd": "ip default-gateway 192.168.1.1",
+  "desc": "Set default gateway"
+ },
+ {
+  "cat": "VLAN & mgmt",
+  "cmd": "hostname SW-FOH",
+  "desc": "Rename the switch"
+ },
+ {
+  "cat": "Save",
+  "cmd": "copy running-config startup-config",
+  "desc": "Save changes (short: wr)"
+ },
+ {
+  "cat": "Save",
+  "cmd": "reload",
+  "desc": "Restart the switch"
+ },
+ {
+  "cat": "Save",
+  "cmd": "clear counters",
+  "desc": "Reset port error counters"
+ },
+ {
+  "cat": "Save",
+  "cmd": "ping 192.168.1.1",
+  "desc": "Test a connection"
+ }
+];
+const CATS = ["All", "Basics", "Show", "Ports", "VLAN & mgmt", "Save"];
+let cat = "All";
+const $ = s => document.querySelector(s);
+const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+$('#chips').innerHTML = CATS.map(c => '<button class="chip" type="button" data-cat="' + esc(c) + '" aria-pressed="' + (c === cat) + '">' + esc(c) + '</button>').join('');
+function render() {
+  const s = $('#q').value.trim().toLowerCase();
+  const items = CMDS.filter(c => (cat === 'All' || c.cat === cat) && (!s || c.cmd.toLowerCase().includes(s) || c.desc.toLowerCase().includes(s)));
+  $('#list').innerHTML = items.length ? items.map(c => '<li><button class="cmd" type="button" data-cmd="' + esc(c.cmd) + '"><code>' + esc(c.cmd) + '</code><span>' + esc(c.desc) + (cat === 'All' ? '<em class="tag">' + esc(c.cat) + '</em>' : '') + '</span></button></li>').join('') : '<li class="empty">No commands match.</li>';
+  $('#count').textContent = items.length + (items.length === 1 ? ' command' : ' commands');
+  document.querySelectorAll('.chip').forEach(b => b.setAttribute('aria-pressed', b.dataset.cat === cat));
+}
+$('#q').addEventListener('input', render);
+$('#chips').addEventListener('click', e => { const b = e.target.closest('.chip'); if (b) { cat = b.dataset.cat; render(); } });
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;font-size:16px';
+  document.body.appendChild(ta);
+  const r = document.createRange(); r.selectNodeContents(ta);
+  const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+  ta.setSelectionRange(0, text.length);
+  let ok = false; try { ok = document.execCommand('copy'); } catch (e) {}
+  sel.removeAllRanges(); ta.remove();
+  return ok;
+}
+async function copyText(text) {
+  if (navigator.clipboard && window.isSecureContext) {
+    try { await navigator.clipboard.writeText(text); return true; } catch (e) {}
+  }
+  return fallbackCopy(text);
+}
+let tt;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('show'), 1500); }
+$('#list').addEventListener('click', async e => {
+  const b = e.target.closest('.cmd'); if (!b) return;
+  const ok = await copyText(b.dataset.cmd);
+  toast(ok ? 'Copied: ' + b.dataset.cmd : 'Copy failed, long-press to select');
+});
+render();
+if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+</script>
+</body>
+</html>
